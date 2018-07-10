@@ -39,7 +39,16 @@ $logdir = "#{$desinationDIR}/#{$packagename}/logs"
 $existinghashpass = '0'
 EventLogs = Array.new
 
-def premisreport(target,action,outcome)
+# Start setting up log output
+@premis_structure = Hash.new
+@premis_structure['package name'] = $packagename
+@premis_structure['package source'] = $inputDIR
+@premis_structure['creation time'] = Time.now
+@premis_structure['events'] = []
+
+def premisreport(action,outcome)
+    @premis_structure['events'] << [{'eventname':action,'eventoutcome':outcome}] 
+end
   
 
 #Exit if target not directory
@@ -70,6 +79,7 @@ end
 # Copy Target directory structure
 if system('rsync','-av',"#{$inputDIR}/",$objectdir)
   puts "Files transferred to target successfully".green
+  premisreport('migratefiles','pass')
 else
   puts "Transfer error: Exiting"
   exit
@@ -95,6 +105,7 @@ if File.exist?("#{$objectdir}/metadata")
     hashvalidation = `hashdeep -k #{priorhashmanifest} -xrl #{$objectdir}`
     if hashvalidation.empty?
       puts "WOO! Existing hash manifest validated correctly".green
+      premisreport('fixitycheck','pass')
       $existinghashpass = '1'
     else
       puts "Existing hash manifest did not validate. Will generate new manifest/check transfer integrity".red
@@ -126,11 +137,14 @@ if  $existinghashpass != '1'
   #compare generated hashes to verify transfer integrity
   hashcomparison = transferred_Hashes - target_Hashes | target_Hashes - transferred_Hashes
   if hashcomparison.empty?
+    premisreport('fixitycheck','pass')
     puts "Files copied successfully".green
     puts "Generating new checksums.".green
     hashmanifest = "#{$metadatadir}/#{$packagename}.md5"
     command = 'hashdeep -rl -c md5 ' + $objectdir + ' >> ' +  hashmanifest
-    system(command)
+    if system(command)
+        premisreport('fixitygeneration','pass')
+    end
   else
     puts "Mismatching hashes detected between target directory and transfer directory. Exiting.".red
     exit
@@ -167,11 +181,13 @@ end
 puts "Creating TAR from Bag".green
 Dir.chdir($desinationDIR)
 if system('tar','-cvf',"#{$packagedir}.tar",$packagename)
-  puts "TAR Created successfulyl: Cleaning up".green
+  puts "TAR Created successfully: Cleaning up".green
   FileUtils.rm_rf($packagename)
   system('cowsay',"Package creation finished for:#{$packagename}")
 else
   puts "TAR creation failed. Exiting.".red
   exit
 end
+
+puts @premis_structure
 
