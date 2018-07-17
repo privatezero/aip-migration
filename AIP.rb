@@ -46,8 +46,8 @@ EventLogs = Array.new
 @premis_structure['creation time'] = Time.now
 @premis_structure['events'] = []
 
-def premisreport(action,outcome)
-    @premis_structure['events'] << [{'eventname':action,'eventoutcome':outcome}] 
+def premisreport(actiontype,outcome)
+    @premis_structure['events'] << [{'eventType':actiontype,'eventDetail':$command,'eventDateTime':Time.now,'eventOutcome':outcome}] 
 end
   
 
@@ -77,9 +77,10 @@ if ! File.exists?($logdir)
 end
 
 # Copy Target directory structure
-if system('rsync','-av',"#{$inputDIR}/",$objectdir)
+$command = 'rsync -av ' + "#{$inputDIR}/ " + $objectdir
+if system($command)
   puts "Files transferred to target successfully".green
-  premisreport('migratefiles','pass')
+  premisreport('replication','pass')
 else
   puts "Transfer error: Exiting"
   exit
@@ -105,7 +106,8 @@ if File.exist?("#{$objectdir}/metadata")
     hashvalidation = `hashdeep -k #{priorhashmanifest} -xrl #{$objectdir}`
     if hashvalidation.empty?
       puts "WOO! Existing hash manifest validated correctly".green
-      premisreport('fixitycheck','pass')
+      $command = "hashdeep -k #{priorhashmanifest} -xrl #{$objectdir}"
+      premisreport('fixity check','pass')
       $existinghashpass = '1'
     else
       puts "Existing hash manifest did not validate. Will generate new manifest/check transfer integrity".red
@@ -137,13 +139,14 @@ if  $existinghashpass != '1'
   #compare generated hashes to verify transfer integrity
   hashcomparison = transferred_Hashes - target_Hashes | target_Hashes - transferred_Hashes
   if hashcomparison.empty?
-    premisreport('fixitycheck','pass')
+    $command = 'transferred_Hashes - target_Hashes | target_Hashes - transferred_Hashes'
+    premisreport('fixity check','pass')
     puts "Files copied successfully".green
     puts "Generating new checksums.".green
     hashmanifest = "#{$metadatadir}/#{$packagename}.md5"
-    command = 'hashdeep -rl -c md5 ' + $objectdir + ' >> ' +  hashmanifest
-    if system(command)
-        premisreport('fixitygeneration','pass')
+    $command = 'hashdeep -rl -c md5 ' + $objectdir + ' >> ' +  hashmanifest
+    if system($command)
+        premisreport('message digest calculation','pass')
     end
   else
     puts "Mismatching hashes detected between target directory and transfer directory. Exiting.".red
@@ -153,17 +156,21 @@ end
 
 # Check if exiftool metadata exists and generate if needed
 technicalmanifest = "#{$metadatadir}/#{$packagename}.json"
-command = 'exiftool -json -r ' + $objectdir + ' >> ' +  technicalmanifest
+$command = 'exiftool -json -r ' + $objectdir + ' >> ' +  technicalmanifest
 if Dir.glob("#{$metadatadir}/*.json")[0].nil?
   puts "Generating technical metadata".green
-  system(command)
+  if system($command)
+    premisreport('metadata extraction','pass')
+  end
 else
   priorhashmanifest = Dir.glob("#{$metadatadir}/*.json")[0]
   if File.exist?(priorhashmanifest)
     if $existinghashpass == '2'
       puts "As original hash manifest was inaccurate, generating new technical metadata".green
       FileUtils.rm(technicalmanifest)
-      system(command)
+      if system($command)
+        premisreport('metadata extraction','pass')
+      end
     end
   end
 end
