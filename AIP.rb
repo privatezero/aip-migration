@@ -103,10 +103,10 @@ if File.exist?("#{$objectdir}/metadata")
   priorhashmanifest = Dir.glob("#{$metadatadir}/*.md5")[0]
   if File.exist? priorhashmanifest
     puts "Attempting to validate using existing hash information for Package:#{$packagename}".green
-    hashvalidation = `hashdeep -k #{priorhashmanifest} -xrl #{$objectdir}`
+    $command = "hashdeep -k #{priorhashmanifest} -xrl #{$objectdir}"
+    hashvalidation = `#{$command}`
     if hashvalidation.empty?
       puts "WOO! Existing hash manifest validated correctly".green
-      $command = "hashdeep -k #{priorhashmanifest} -xrl #{$objectdir}"
       premisreport('fixity check','pass')
       $existinghashpass = '1'
     else
