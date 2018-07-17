@@ -1,4 +1,4 @@
-require 'csv'
+require 'json'
 require 'fileutils'
 require 'optparse'
 require 'digest'
@@ -168,6 +168,10 @@ else
   end
 end
 
+# Generate log
+File.open("#{$logdir}/#{$packagename}.log",'w') {|file| file.write(@premis_structure.to_json)}
+
+
 #Bag Package
 puts "Creating bag from package".green
 if system('bagit','baginplace',"#{$desinationDIR}/#{$packagename}")
@@ -188,6 +192,4 @@ else
   puts "TAR creation failed. Exiting.".red
   exit
 end
-
-puts @premis_structure
 
