@@ -192,7 +192,7 @@ end
 #TAR Bag
 puts "Creating TAR from Bag".green
 Dir.chdir($desinationDIR)
-if system('tar','-cvf',"#{$packagedir}.tar",$packagename)
+if system('tar','--posix','-cvf',"#{$packagedir}.tar",$packagename)
   puts "TAR Created successfully: Cleaning up".green
   FileUtils.rm_rf($packagename)
   system('cowsay',"Package creation finished for:#{$packagename}")
