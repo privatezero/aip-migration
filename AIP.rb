@@ -112,6 +112,7 @@ if File.exist?("#{$objectdir}/metadata")
     else
       puts "Existing hash manifest did not validate. Will generate new manifest/check transfer integrity".red
       FileUtils.rm(priorhashmanifest)
+      premisreport('fixity check','fail')
       $existinghashpass = '2'
     end
   end
