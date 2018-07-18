@@ -77,12 +77,13 @@ if ! File.exists?($logdir)
 end
 
 # Copy Target directory structure
-$command = 'rsync -av ' + "#{$inputDIR}/ " + $objectdir
+$command = 'rsync -av ' + "'" + "#{$inputDIR}/" + "'" + " " + "'" + $objectdir + "'"
+puts $command
 if system($command)
   puts "Files transferred to target successfully".green
   premisreport('replication','pass')
 else
-  puts "Transfer error: Exiting"
+  puts "Transfer error: Exiting".red
   exit
 end
 
