@@ -54,9 +54,14 @@ end
   
 
 #Exit if target not directory
-
 if ! File.directory?($inputDIR) || ! File.directory?($desinationDIR)
   puts "Please confirm inputs are valid directories. Exiting.".red
+  exit
+end
+
+#Exit if target is in destination
+if File.dirname($inputDIR) == File.expand_path($desinationDIR)
+  puts "Destination directory must be in a different location from target directory!".red
   exit
 end
 
