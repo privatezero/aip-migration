@@ -192,15 +192,16 @@ else
   exit
 end
 
-#TAR Bag
-puts "Creating TAR from Bag".green
-Dir.chdir($desinationDIR)
-if system('tar','--posix','-cvf',"#{$packagedir}.tar",$packagename)
-  puts "TAR Created successfully: Cleaning up".green
-  FileUtils.rm_rf($packagename)
-  system('cowsay',"Package creation finished for:#{$packagename}")
-else
-  puts "TAR creation failed. Exiting.".red
-  exit
-end
+# Commented out as not part of current work flow
+# #TAR Bag
+# puts "Creating TAR from Bag".green
+# Dir.chdir($desinationDIR)
+# if system('tar','--posix','-cvf',"#{$packagedir}.tar",$packagename)
+#   puts "TAR Created successfully: Cleaning up".green
+#   FileUtils.rm_rf($packagename)
+#   system('cowsay',"Package creation finished for:#{$packagename}")
+# else
+#   puts "TAR creation failed. Exiting.".red
+#   exit
+# end
 
