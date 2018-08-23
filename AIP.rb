@@ -79,7 +79,7 @@ if ! File.exists?($logdir)
 end
 
 # Copy Target directory structure
-$command = 'rsync -av ' + "'" + "#{$inputDIR}/" + "'" + " " + "'" + $objectdir + "'"
+$command = 'rsync -rtvPih ' + "'" + "#{$inputDIR}/" + "'" + " " + "'" + $objectdir + "'"
 puts $command
 if system($command)
   puts "Files transferred to target successfully".green
@@ -106,7 +106,7 @@ if File.exist?("#{$objectdir}/metadata")
   priorhashmanifest = Dir.glob("#{$metadatadir}/*.md5")[0]
   if File.exist? priorhashmanifest
     puts "Attempting to validate using existing hash information for Package:#{$packagename}".green
-    $command = "hashdeep -k #{priorhashmanifest} -xrl #{$objectdir}"
+    $command = "hashdeep -k #{priorhashmanifest} -xrle #{$objectdir}"
     hashvalidation = `#{$command}`
     if hashvalidation.empty?
       puts "WOO! Existing hash manifest validated correctly".green
